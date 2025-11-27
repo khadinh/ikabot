@@ -347,7 +347,7 @@ def is_collectable(row):
 
 def collect_resource_favour(session, table):
     # literally just collect the first two tasks if they're done
-    global wine_city
+    global wine_city, wood_city, luxury_city, favour_tasks
     passive1 = table[0]
     passive2 = table[1]
 
