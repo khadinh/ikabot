@@ -44,10 +44,10 @@ DEFAULT_SCHEMATICS = {
         {
             "level": (1, 9),
             "looting": {"from_float": False, "units": {"302": 1}},
-            "needed_units": {"main": {"302": 90, "304": 21}},
+            "needed_units": {"main": {"308": 30}},
             "waves": {
                 "1": {
-                    "send": [{"from_float": False, "units": {"302": 90, "304": 21}}],
+                    "send": [{"from_float": False, "units": {"308": 30}}],
                 }
             },
         },
@@ -67,7 +67,7 @@ DEFAULT_SCHEMATICS = {
             },
         },
         {
-            "level": (20, 29),
+            "level": (20, 24),
             "looting": {"from_float": False, "units": {"305": 12, "308": 100}},
             "needed_units": {
                 "main": {
@@ -76,7 +76,7 @@ DEFAULT_SCHEMATICS = {
                     "305": 12,
                     "307": 12,
                     "308": 100,
-                    "309": 30,
+                    # "309": 30,
                     "310": 5,
                 }
             },
@@ -91,7 +91,7 @@ DEFAULT_SCHEMATICS = {
                                 "305": 12,
                                 "307": 12,
                                 "308": 100,
-                                "309": 30,
+                                # "309": 30,
                                 "310": 5,
                             },
                         },
@@ -99,34 +99,61 @@ DEFAULT_SCHEMATICS = {
                 },
             },
         },
+        # {
+        #     "level": (30, 39),
+        #     "looting": {"from_float": False, "units": {"305": 24, "308": 150}},
+        #     "needed_units": {
+        #         "main": {
+        #             "302": 300,
+        #             "304": 147,
+        #             "305": 24,
+        #             "307": 18,
+        #             "308": 300,
+        #             "310": 5,
+        #             "311": 10,
+        #         }
+        #     },
+        #     "waves": {
+        #         "1": {
+        #             "send": [
+        #                 {
+        #                     "from_float": False,
+        #                     "units": {
+        #                         "302": 300,
+        #                         "304": 147,
+        #                         "305": 24,
+        #                         "307": 18,
+        #                         "308": 300,
+        #                         "310": 5,
+        #                         "311": 10,
+        #                     },
+        #                 },
+        #             ],
+        #         },
+        #     },
+        # },
+    ],
+    "CUSTOM": [
         {
-            "level": (30, 39),
-            "looting": {"from_float": False, "units": {"305": 24, "308": 150}},
-            "needed_units": {
-                "main": {
-                    "302": 300,
-                    "304": 147,
-                    "305": 24,
-                    "307": 18,
-                    "308": 300,
-                    "310": 5,
-                    "311": 10,
+            "level": (1, 9),
+            "looting": {"from_float": False, "units": {"302": 1}},
+            "needed_units": {"main": {"303": 90}},
+            "waves": {
+                "1": {
+                    "send": [{"from_float": False, "units": {"303": 90}}],
                 }
             },
+        },
+        {
+            "level": (10, 19),
+            "looting": {"from_float": False, "units": {"305": 12, "308": 50}},
+            "needed_units": {"main": {"302": 60, "303": 180, "306": 12}},
             "waves": {
                 "1": {
                     "send": [
                         {
                             "from_float": False,
-                            "units": {
-                                "302": 300,
-                                "304": 147,
-                                "305": 24,
-                                "307": 18,
-                                "308": 300,
-                                "310": 5,
-                                "311": 10,
-                            },
+                            "units": {"302": 60, "303": 180, "306": 12},
                         },
                     ],
                 },
@@ -135,7 +162,7 @@ DEFAULT_SCHEMATICS = {
     ],
 }
 FIVE_MINUTES = 5 * 60
-DEVELOPMENT = False
+DEVELOPMENT = True
 
 
 def autoBarbarians(session, event, stdin_fd, predetermined_input):
@@ -228,6 +255,7 @@ def autoBarbarians(session, event, stdin_fd, predetermined_input):
                 pass
             elif schematic_option == 2:
                 # TODO do the part where the user can select a custom structure
+                schematic = DEFAULT_SCHEMATICS["CUSTOM"]
                 pass
 
         banner()
@@ -579,9 +607,11 @@ def has_units_in_city(session, city, units):
 
 
 def do_it(session, island, city, float_city, schematic, units_data, ship_capacity):
+    sendToBot(session, "DEBUG: do_it started")
     attempts = {"ships": 0}
     first_loop = True
     while True:
+        sendToBot(session, "DEBUG: Starting new attack iteration on barbarians[{}:{}].".format(island["x"], island["y"]))
         if first_loop is False:
             time.sleep(FIVE_MINUTES)
         else:
@@ -601,6 +631,7 @@ def do_it(session, island, city, float_city, schematic, units_data, ship_capacit
             )
             break
         if island["barbarians"]["destroyed"] == 1:
+            sendToBot(session, "DEBUG: Barbarians[{}:{}] are destroyed, waiting for respawn.".format(island["x"], island["y"]))
             loot(
                 session,
                 island,
@@ -613,26 +644,34 @@ def do_it(session, island, city, float_city, schematic, units_data, ship_capacit
             wait_for_looting(session, city, island)
             continue
         ships_available = waitForArrival(session)
+        sendToBot(session, "DEBUG: amount_ships_schematic: {}, barbarians_plan: {}".format(
+            get_amount_ships_schematic(
+                barbarians_plan["needed_units"]["total"], units_data, ship_capacity
+            ),
+            babarians_info["ships"],
+        ))
         schematic_ships = (
             get_amount_ships_schematic(
                 barbarians_plan["needed_units"]["total"], units_data, ship_capacity
             )
             + babarians_info["ships"]
         )
-        if schematic_ships > ships_available:
-            attempts["ships"] += 1
-            session.setStatus(
-                "waiting for availability of ({}) boats".format(schematic_ships)
-            )
-            if attempts["ships"] > 20:
-                sendToBot(
-                    session,
+        # TODO: review if we want to re-enable this ship check
+        # sendToBot(session, "Ships needed: {}, Ships available: {}".format(schematic_ships, ships_available))
+        # if schematic_ships > ships_available:
+        #     attempts["ships"] += 1
+        #     session.setStatus(
+        #         "waiting for availability of ({}) boats".format(schematic_ships)
+        #     )
+        #     if attempts["ships"] > 20:
+        #         sendToBot(
+        #             session,
                     
-                        "It was not possible to continue the attack on the barbarians due to the long unavailability of ships."
-                    ,
-                )
-                break
-            continue
+        #                 "It was not possible to continue the attack on the barbarians due to the long unavailability of ships."
+        #             ,
+        #         )
+        #         break
+        #     continue
         if (
             has_units_in_city(session, city, barbarians_plan["needed_units"]["total"])
             is False
@@ -682,6 +721,7 @@ def do_attack(session, island, city, schematic, ship_capacity, float_city=None, 
 
     i = 0
     for wave_id, wave_data in sorted(schematic["waves"].items()):
+        sendToBot(session, "DEBUG: Starting wave {}.".format(wave_id))
         i += 1
         wave_id = int(wave_id)
 
@@ -690,6 +730,7 @@ def do_attack(session, island, city, schematic, ship_capacity, float_city=None, 
         sends_data = split_wave_sends_for_group(wave_id, wave_data)
         float_city_data = None
         if float_city is not None:
+            sendToBot(session, "DEBUG: Preparing attacks from float city.")
             float_city_data = []
             for float_attack_round in sends_data["float_city"]:
                 float_attack_data, float_ships_needed, float_travel_time = (
@@ -731,6 +772,7 @@ def do_attack(session, island, city, schematic, ship_capacity, float_city=None, 
                 minor_travel_time = main_travel_time
 
         try:
+            sendToBot(session, "DEBUG: Waiting for wave {} to be ready.".format(wave_id))
             session.setStatus("Waiting for round (round: {})".format(wave_id))
             wait_for_round(
                 session, city, island, major_travel_time, battle_start, wave_id
@@ -745,6 +787,7 @@ def do_attack(session, island, city, schematic, ship_capacity, float_city=None, 
         if battle_start is None:
             battle_start = time.time() + major_travel_time
 
+        sendToBot(session, "DEBUG: Sending wave {} attacks.".format(wave_id))
         ships_needed = sum([data["ships_needed"] for data in main_city_data])
         if float_city is not None:
             ships_needed += sum([data["ships_needed"] for data in float_city_data])
@@ -766,14 +809,17 @@ def do_attack(session, island, city, schematic, ship_capacity, float_city=None, 
                 )
 
         if isinstance(main_city_data, list) and len(main_city_data) > 0:
+            sendToBot(session, "DEBUG: Sending attacks from main city with data: {}".format(main_city_data))
             for data in main_city_data:
                 session.post(params=data["attack_data"])
 
         if isinstance(float_city_data, list) and len(float_city_data) > 0:
+            sendToBot(session, "DEBUG: Sending attacks from float city with data: {}".format(float_city_data))
             for data in float_city_data:
                 session.post(params=data["attack_data"])
 
         if wave_id == 1:
+            sendToBot(session, "DEBUG: Waiting for arrival of wave {} attacks.".format(wave_id))
             wait_for_arrival(session, minor_travel_city, island)
 
 
@@ -798,6 +844,7 @@ def split_wave_sends_for_group(wave_id, wave_data):
 
 
 def loot(session, island, city, schematic, ship_capacity, float_city=None, units_data={}):
+    sendToBot(session, "DEBUG: Starting looting of remaining resources in barbarians[{}:{}].".format(island["x"], island["y"]))
     session.setStatus("Looting remaining resources")
     barbarian_countdown = None
     while True:
@@ -840,7 +887,9 @@ def loot(session, island, city, schematic, ship_capacity, float_city=None, units
 
         session.post(params=attack_data)
 
+        sendToBot(session, "DEBUG: Sent looting attack to barbarians[{}:{}], travel time: {} seconds.".format(island["x"], island["y"], travel_time))
         if send_scatter:
+            sendToBot(session, "Sending scatter attack to reset barbarian countdown.")
             ram_attack_data, ram_travel_time, _ = get_send_attack_data(
                 session, island, destin_city, {"307": 1}, units_data, ship_capacity
             )
@@ -852,6 +901,7 @@ def loot(session, island, city, schematic, ship_capacity, float_city=None, units
         time_left = barbarian_countdown - time.time()
         if time_left is not None and travel_time > time_left:
             break
+        sendToBot(session, "DEBUG: Waiting for looting attack to arrive to barbarians[{}:{}].".format(island["x"], island["y"]))
         wait_for_arrival(session, city, island)
 
 

@@ -199,12 +199,16 @@ class Session:
         if not self.logged:
             banner()
 
+            default_email = os.getenv('IKABOT_EMAIL', 'default@example.com')
             self.mail = read(msg="Mail:")
+            self.mail = self.mail if self.mail else default_email
 
+            default_password = os.getenv('IKABOT_PASSWORD', 'default_password')
             if len(config.predetermined_input) != 0:
                 self.password = config.predetermined_input.pop(0)
             else:
                 self.password = getpass.getpass("Password:")
+            self.password = self.password if self.password else default_password
 
             banner()
 
@@ -604,9 +608,11 @@ class Session:
                     "document.cookie.split(';').forEach(x => {if (x.includes('production')) console.log(x)})"
                 )
 
+                default_auth_token = os.getenv('IKABOT_AUTH_TOKEN', 'default_auth_token')
                 auth_token = read(msg="\nEnter gf-token-production manually:").split(
                     "="
                 )[-1]
+                auth_token = auth_token if auth_token else default_auth_token
                 cookie_obj = requests.cookies.create_cookie(
                     domain=".gameforge.com",
                     name="gf-token-production",
