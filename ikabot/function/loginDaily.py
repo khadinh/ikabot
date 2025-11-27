@@ -32,7 +32,7 @@ def loginDaily(session, event, stdin_fd, predetermined_input):
     config.predetermined_input = predetermined_input
     try:
         banner()
-        global wine_city
+        global wine_city, wood_city, luxury_city, favour_tasks
         print("Choose the city where the daily login bonus wine will be sent:")
         wine_city = chooseCity(session)
         print("Do you want to automatically activate the cinetheatre bonus? (Y|N)")

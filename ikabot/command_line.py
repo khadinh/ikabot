@@ -13,6 +13,7 @@ from ikabot.function.alertAttacks import alertAttacks
 from ikabot.function.alertLowWine import alertLowWine
 from ikabot.function.attackBarbarians import attackBarbarians
 from ikabot.function.autoBarbarians import autoBarbarians
+from ikabot.function.autoBarbariansV2 import autoBarbariansV2
 from ikabot.function.autoPirate import autoPirate
 from ikabot.function.buyResources import buyResources
 from ikabot.function.checkForUpdate import checkForUpdate
@@ -49,6 +50,7 @@ from ikabot.helpers.pedirInfo import read
 from ikabot.helpers.process import updateProcessList
 from ikabot.web.session import *
 from ikabot.function.modifyProduction import modifyProduction
+from ikabot.function.simpleAutoGrind import simpleAutoGrind
 
 
 def menu(session, checkUpdate=True):
@@ -137,6 +139,8 @@ def menu(session, checkUpdate=True):
         18: investigate,
         1901: attackBarbarians,
         1902: autoBarbarians,
+        1903: autoBarbariansV2,
+        1904: simpleAutoGrind,
         2001: searchForIslandSpaces,
         2002: dumpWorld,
         2101: proxyConf,
@@ -226,8 +230,10 @@ def menu(session, checkUpdate=True):
         banner()
         print("(0) Back")
         print("(1) Simple Attack")
-        print("(2) Auto Grind")
-        selected = read(min=0, max=2, digit=True)
+        print("(2) Auto Grind (Advanced)")
+        print("(3) Auto Grind v2 (Advanced)")
+        print("(4) Simple Auto Grind (Easy)")
+        selected = read(min=0, max=4, digit=True)
         if selected == 0:
             menu(session)
             return

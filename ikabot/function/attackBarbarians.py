@@ -537,6 +537,7 @@ def wait_until_attack_is_over(session, city, island):
 def load_troops(
     session, city, island, attack_round, units_data, attack_data, ship_capacity, extra_cargo=0
 ):
+    sendToBot(session, "Loading troops for round {}".format(attack_round))
     ships_needed = Decimal(extra_cargo) / Decimal(ship_capacity)
     speeds = []
     current_units = get_units(session, city)
